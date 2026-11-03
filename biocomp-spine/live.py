@@ -76,7 +76,7 @@ mimetypes.add_type("text/javascript", ".js")  # Windows' registry can say text/p
 GAP_BINS = [60, 100, 150, 250, 400, 600, 1000, 4000]  # ms before the pulse
 _rh = dict(F=[], T=[], TR=[], model=None, timing_model=None, next_id=0, picked=None)
 try:
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "history.json")) as _f:
+    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "history.json"), encoding="utf-8") as _f:
         _hist = json.load(_f)  # earlier runs' series (e.g. the simulator check), shown beside this one
 except (OSError, ValueError):
     _hist = {}
@@ -161,7 +161,7 @@ def _run():
             STATE.update(running=False, finished=True)
 
 
-PAGE = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "rhythm.html" if ARGS.rhythm else "live.html")).read()
+PAGE = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "rhythm.html" if ARGS.rhythm else "live.html"), encoding="utf-8").read()
 
 
 # ---- Rescue Listener (--rhythm) -----------------------------------------------------------------
@@ -264,7 +264,7 @@ def _history(meta):
             ser["n"][b] += 1
         STATE["history"] = dict(bins=GAP_BINS, series=_hist, current=_series_name())
         try:
-            with open(HISTORY, "w") as f:
+            with open(HISTORY, "w", encoding="utf-8") as f:
                 json.dump(_hist, f)
         except OSError:
             pass
