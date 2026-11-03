@@ -457,7 +457,7 @@ def test_header_and_result_line_say_practice_under_the_mock():
     html = open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "rhythm.html")).read()
     fns = "\n".join(re.search(rf"const {n} = [^\n]+;", html).group(0) for n in ("PROV", "provOf", "resultTail"))
     null = "No history effect larger than 20.6 spikes either way in this dish tonight."
-    js = fns + f"console.log(JSON.stringify([provOf('mock'), resultTail({json.dumps(null)}, 'mock'), resultTail(null, 'mock'), provOf('CL1')]));"
+    js = fns + f"console.log(JSON.stringify([provOf('cl-sdk simulator'), resultTail({json.dumps(null)}, 'cl-sdk simulator'), resultTail(null, 'cl-sdk simulator'), provOf('CL1')]));"
     head, tail, bare, live = json.loads(subprocess.run(["node", "-e", js], capture_output=True, text=True, timeout=30).stdout)
     assert head == "Simulator running live · LIF spiking network" and live == "Live: CL1"
     assert tail.startswith("No history effect larger") and tail.endswith("tonight (Simulator running live · LIF spiking network). ")
@@ -714,7 +714,7 @@ def test_noise_filter_card_says_exploratory_and_shows_no_p_value():
     assert "Noise filter (exploratory)" in card and 'id="ntag"' in card and "Idea from Eytan, Brenner &amp; Marom 2003: in rat cortical networks" in card and "The index is Ulanovsky's (2003). Exploratory." in card and "dishes like this" not in card
     assert html.index('id="pcard"') < html.index('id="ncard"')            # below the memory test
     r = dict(verdict="none", mean=0.022, ci=[-0.034, 0.077], n=300, flagged=dict(n=0))
-    head, small = _node(_pure_js() + f"console.log(JSON.stringify(nfResult({json.dumps(r)}, 'mock')));")
+    head, small = _node(_pure_js() + f"console.log(JSON.stringify(nfResult({json.dumps(r)}, 'cl-sdk simulator')));")
     assert head == "No filtering detected" and small.startswith("Simulator running live · LIF spiking network. Exploratory")
     assert small.endswith("The conditions run in a fixed order, so drift or carry-over can make this contrast; the interval resamples pulses only.")
     head, _ = _node(_pure_js() + f"console.log(JSON.stringify(nfResult({json.dumps(dict(r, verdict='positive', mean=0.14, ci=[0.05, 0.2]))}, 'mock')));")
@@ -730,7 +730,7 @@ def test_noise_filter_card_says_exploratory_and_shows_no_p_value():
 
 def test_artefact_chart_renders_three_bars_and_chance_with_the_trap_off_the_axis():
     c = dict(acc=0.61, shuffled=0.49, timing_only=0.97, trap=0.95)
-    H, svg = _node(_pure_js() + f"console.log(JSON.stringify(artefactChart({json.dumps(c)}, 'mock', 'Software on timing alone', 600)));")
+    H, svg = _node(_pure_js() + f"console.log(JSON.stringify(artefactChart({json.dumps(c)}, 'cl-sdk simulator', 'Software on timing alone', 600)));")
     for s in ("LIF spiking network", "stimulation window excluded", "Shuffled labels", "Software on timing alone", "chance 50%",
               "Simulator running live · LIF spiking network", ">61%<", ">49%<", ">97%<", 'stroke-dasharray="4 3"'):
         assert s in svg, s
@@ -858,7 +858,7 @@ def test_second_blind_check_one_vocabulary_one_primary_and_the_exploratory_resul
     import re
     js = lambda e: _node(_pure_js() + f"console.log(JSON.stringify({e}));")
     who = lambda src: js(f"artefactChart(null, '{src}', 'x', 600)[1]")
-    assert ">The cells<" in who("CL1") and ">LIF spiking network<" in who("mock")
+    assert ">The cells<" in who("CL1") and ">Practice simulator<" in who("mock")
     assert ">LIF spiking network<" in who("cl-sdk simulator")
     _, g = _node(_pure_js() + "console.log(JSON.stringify(artefactChart({acc: 0.98, shuffled: 0.49, timing_only: 0.98}, 'mock', 'x', 600)));")
     assert re.findall(r'<text class="t" x="(\d+)"[^>]*text-anchor="end">98%', g) == ["596", "596"]   # clear of the edge
@@ -976,17 +976,17 @@ def test_the_noise_plot_unit_wraps_on_a_phone():
 def test_the_cells_off_control_keeps_its_name_on_pill_tag_and_chart(width):
     """T-1027 final review #3: NO_CELLS=1 said "simulator check, cells off" on the server, but the page rebuilt it as the practice dish."""
     s = _live_state(NO_CELLS="1")
-    assert s["cells_off"] and "cells off" in s["pill"] and not _live_state()["cells_off"]
+    assert s["cells_off"] and "network off (control)" in s["pill"] and not _live_state()["cells_off"]
     got, = _page([dict(s, calib=_LUCK)], width)
-    assert got["pill"].startswith("Simulator running live · LIF network off (control)") and got["ctag"] == "Simulator running live · LIF network off (control)"
-    assert "Simulator running live · LIF network off (control)" in got["chart"] and "LIF network off (control)" in got["chart"]
+    assert got["pill"].startswith("Practice simulator · network off (control)") and got["ctag"] == "Practice simulator · network off (control)"
+    assert "Practice simulator · network off (control)" in got["chart"] and ">Network off (control)<" in got["chart"] and "LIF" not in got["chart"]
 
 
 def test_the_simulator_path_says_lif_network_and_replay_says_replay():
     """Hackathon: on the simulator, pill, tags and chart say a live LIF spiking network: no dish, cells, neurons or CL1."""
     import re
     s = dict(_live_state(), phase="ready", calib=_LUCK, latest=dict(_HIT, clip="c0ffee", bed="concrete"))
-    for src in ("mock", "cl-sdk simulator"):
+    for src in ("cl-sdk simulator",):
         got, = _page([dict(s, source=src, scene=True)])
         words = " ".join([got["pill"], got["ctag"], got["vtag"], re.sub(r"<[^>]+>", " ", got["chart"])])
         assert got["pill"].startswith("Simulator running live · LIF spiking network") and got["ctag"] == "Simulator running live · LIF spiking network" and "Simulator running live · LIF spiking network" in got["chart"]
