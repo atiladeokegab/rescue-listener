@@ -1,0 +1,268 @@
+[
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept.json",
+  "file": "ept.json",
+  "sha256": "ba9e6cedbd4165272d76116bd7d2ff18c381943931cccc5d0244ec8fb5d38c10"
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-hierarchy/0-0-0-0.json",
+  "file": "hier-0-0-0-0.json",
+  "sha256": "6aabb3380547e3e8bd9b6eb08e9d3075787998c365602531e98947b687fb85b6"
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-hierarchy/6-32-38-31.json",
+  "file": "hier-6-32-38-31.json",
+  "sha256": "84c9a1d9e8f03c3cc4bf64f755836eaebac9006c6b7deff57fdde0b6a0aa951a"
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-hierarchy/6-31-38-31.json",
+  "file": "hier-6-31-38-31.json",
+  "sha256": "0c449fdc43ad0ca07db14c1033d0f253609a694b1bade383802c54b8b84f808b"
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/0-0-0-0.laz",
+  "file": "0-0-0-0.laz",
+  "sha256": "9217c86bdaa4eff70eb542aa567481c2f38c78fee9317c3abe79e590fb93e632",
+  "points": 1285
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/1-0-1-0.laz",
+  "file": "1-0-1-0.laz",
+  "sha256": "edfebdf3bd40510082b051bd580f9f1454c3567e5dad656278223ff4a8b19582",
+  "points": 2279
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/1-0-1-1.laz",
+  "file": "1-0-1-1.laz",
+  "sha256": "297f97d6e1b9a68839550d897368ec22a5ebf130628cdbc3bc8af7b066fe2988",
+  "points": 13
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/1-1-1-0.laz",
+  "file": "1-1-1-0.laz",
+  "sha256": "2af9aa7d6ee8af76f7445410fe7d21b5ae14af1a2277fde777544d66a4493e95",
+  "points": 2663
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/1-1-1-1.laz",
+  "file": "1-1-1-1.laz",
+  "sha256": "87850a266e04b3d057179faee9f53b8a7ccfd5381add8f6333791ce1730dc0c1",
+  "points": 231
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/2-1-2-1.laz",
+  "file": "2-1-2-1.laz",
+  "sha256": "1476f8f871b1fadc621688214784bb5b7806f518050ac8a8023ac75a5a2a6826",
+  "points": 6821
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/2-1-2-2.laz",
+  "file": "2-1-2-2.laz",
+  "sha256": "99822fa90b350de2a6c6fe87a0d2f743067b5131d573f4146c6b410344a9d19c",
+  "points": 34
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/2-2-2-1.laz",
+  "file": "2-2-2-1.laz",
+  "sha256": "92bb5da9b70ce211b773b0cba9f4d3b076ce784a1ddc156b12f270f09bcb7c72",
+  "points": 9681
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/2-2-2-2.laz",
+  "file": "2-2-2-2.laz",
+  "sha256": "62535a9eb7e05b9bdff0adecef8bc0a36597471842792672fd3dfbc97e901347",
+  "points": 903
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/3-3-4-3.laz",
+  "file": "3-3-4-3.laz",
+  "sha256": "888184dd8f5ea017b2c79eb3f137cc0451046a39689713c7fa87f4c20a128ebf",
+  "points": 10180
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/3-3-4-4.laz",
+  "file": "3-3-4-4.laz",
+  "sha256": "176f2159ff1037a57869b54b9de0039c8b39363260c22879aa8addedaab931ec",
+  "points": 111
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/3-4-4-3.laz",
+  "file": "3-4-4-3.laz",
+  "sha256": "5372cfb2d507dddd7730f0641f7f79b3ad8ba356267eabe64f460241efbd3287",
+  "points": 10397
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/3-4-4-4.laz",
+  "file": "3-4-4-4.laz",
+  "sha256": "c54f8538dd86786aac1f877a2fb688dc4ba79310ef07caffeb846e2cee58ec99",
+  "points": 3644
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/4-7-9-7.laz",
+  "file": "4-7-9-7.laz",
+  "sha256": "20c3fb6f53605052e059c05f43a82a1836689a6b44684e0a836630f364b8ede4",
+  "points": 15685
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/4-8-9-7.laz",
+  "file": "4-8-9-7.laz",
+  "sha256": "c359ae6125fa7d2adf7f30293b19e59011bf575b2efd4343ed487eddbd43882f",
+  "points": 21405
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/4-8-9-8.laz",
+  "file": "4-8-9-8.laz",
+  "sha256": "18360f6a8df797cb539c4b56097dca3562bb516ecdd1d22c25c23d254841aae4",
+  "points": 471
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/5-15-19-15.laz",
+  "file": "5-15-19-15.laz",
+  "sha256": "c097b984d54b13c97c9b0bf2a89dd30b1873095801b40e1f93a6b4929d64b297",
+  "points": 14547
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/5-16-19-15.laz",
+  "file": "5-16-19-15.laz",
+  "sha256": "f735d7d309b93c9084e7cf626a545485263e8737560e6efabbbf9910709e45b8",
+  "points": 24873
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/6-32-38-31.laz",
+  "file": "6-32-38-31.laz",
+  "sha256": "474e3c0c4d9d2d59537f8586232ec6f449892e3975dfa505f4debe1128e8c8b7",
+  "points": 29763
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/6-31-38-31.laz",
+  "file": "6-31-38-31.laz",
+  "sha256": "38216f08014a0775e8a023f112614facbe276e0de32eb578b3962e12016af3c6",
+  "points": 24371
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/7-64-76-63.laz",
+  "file": "7-64-76-63.laz",
+  "sha256": "a86793b86d6b2e9dae96abaa68745443c5621888ef55ffc021e9e82798d97809",
+  "points": 37044
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/7-64-77-63.laz",
+  "file": "7-64-77-63.laz",
+  "sha256": "71af72bc85176073e9fc7875e23a1c82918f38e4e4ee571aab8ee911681e32b2",
+  "points": 33657
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/7-63-76-63.laz",
+  "file": "7-63-76-63.laz",
+  "sha256": "c47e7993308f0b3cae1888cd2ef13cedbc05135f61fbd904e90fd446eb6318b3",
+  "points": 31475
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/7-63-77-63.laz",
+  "file": "7-63-77-63.laz",
+  "sha256": "ec645c40e8f494c642a4a0b332524696eaf0c57d36dc7a5ceb1b85953372af5f",
+  "points": 33294
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/8-128-153-126.laz",
+  "file": "8-128-153-126.laz",
+  "sha256": "0828880e2dcddfeb824f591f31c9fca4efcc258e19d95d6870f0477285e739e7",
+  "points": 37404
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/8-128-154-126.laz",
+  "file": "8-128-154-126.laz",
+  "sha256": "22db0a2b2dc56189044b7db184f7dac7bd6f57cf1fefb4d95729c6cd31580750",
+  "points": 37196
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/8-127-153-126.laz",
+  "file": "8-127-153-126.laz",
+  "sha256": "da045327529a65e1ea3e1994b79900cd048f2e0def7dd1ee66dc4e2137d54339",
+  "points": 35938
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/8-127-154-126.laz",
+  "file": "8-127-154-126.laz",
+  "sha256": "231762479808b32be5038c9fa5bf4870a5f50cd7053bf32ec654a4daaa3ead5c",
+  "points": 38357
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/9-256-307-252.laz",
+  "file": "9-256-307-252.laz",
+  "sha256": "1114b420d0a197052d27337cd0428de6bd2775ca2d3a51f05a3302f4f5adc8b4",
+  "points": 33877
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/9-256-308-252.laz",
+  "file": "9-256-308-252.laz",
+  "sha256": "a273fc274d50254a659bf23fc7980b7f87aed83b0a9f39495466e959f0eb735e",
+  "points": 30196
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/9-255-307-252.laz",
+  "file": "9-255-307-252.laz",
+  "sha256": "58279af72ba5c7c804f5ba30bed5b6c496ce4e5534d86f4c3eee9258a1cdb929",
+  "points": 30089
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/9-255-308-252.laz",
+  "file": "9-255-308-252.laz",
+  "sha256": "df53ed62c877260cef99691f5ebacf2455196699dcd5d2c3837edb854c3bf2c5",
+  "points": 34236
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/10-512-615-505.laz",
+  "file": "10-512-615-505.laz",
+  "sha256": "ea0f0da1f20125badc2e2caf5ef3d68b622c2518d699b7480322a0ada35725d5",
+  "points": 41563
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/10-512-616-505.laz",
+  "file": "10-512-616-505.laz",
+  "sha256": "0074124efa235ad4ed1f2077a9c95207997da213fc3eacc68e510f98b1ff0aa9",
+  "points": 38162
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/10-512-617-505.laz",
+  "file": "10-512-617-505.laz",
+  "sha256": "92cc9af74d22559bb1322da944d964d7c2fbc615d1c47025f77dfa707c732785",
+  "points": 56728
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/10-513-615-505.laz",
+  "file": "10-513-615-505.laz",
+  "sha256": "bbbd3af0866430c8c8b8f5140d1e0571e6084ed74076be31e59b56919b7e7ada",
+  "points": 42251
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/10-513-616-505.laz",
+  "file": "10-513-616-505.laz",
+  "sha256": "d34a8f4934ace1248de5038f9c981cd79623c3f60158652fe73b1c43fbe13f45",
+  "points": 41816
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/10-513-617-505.laz",
+  "file": "10-513-617-505.laz",
+  "sha256": "baa6d65f29823121301325c92c73bc456c6f94bf60f01dddd38416a2474b60b8",
+  "points": 61425
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/10-511-615-505.laz",
+  "file": "10-511-615-505.laz",
+  "sha256": "44469e4976427da9c0e61d7eef9aef845b5866d359ea4625b50191750b3a98c1",
+  "points": 38430
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/10-511-616-505.laz",
+  "file": "10-511-616-505.laz",
+  "sha256": "1a7f6fe8b119a3832811b15c81b5ee18e64bf3d2f71783138fab46be7c1f2c63",
+  "points": 39538
+ },
+ {
+  "url": "https://opentopography.s3.sdsc.edu/pc-bulk/Haiti/ept/ept-data/10-511-617-505.laz",
+  "file": "10-511-617-505.laz",
+  "sha256": "c794281a972d4a992b535cbb23a44afac3ddc36e4394a57319e9204ed0682b37",
+  "points": 57877
+ }
+]

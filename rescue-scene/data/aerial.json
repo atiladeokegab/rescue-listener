@@ -1,0 +1,17 @@
+{
+  "bbox_utm": [
+    780757,
+    2052199,
+    781057,
+    2052499
+  ],
+  "crs": "EPSG:32618",
+  "px": 2048,
+  "source": "Rochester Institute of Technology (RIT) Wildfire Airborne Sensor Program (WASP), World Bank / ImageCat / RIT Haiti earthquake mission, KCM-11 visible camera; image 'Haiti 2010-01-21' via OpenAerialMap / Open Imagery Network. Reprojected from EPSG:3857 (0.127 m) to EPSG:32618, lanczos, 0.1465 m per output pixel.",
+  "url": "https://oin-hotosm-temp.s3.amazonaws.com/59bb04b723c8440011d7b198/0/688eeedf-f0c3-4e6d-8441-0b06b3f57af2.tif",
+  "date_taken": "2010-01-21",
+  "gsd_m": 0.12,
+  "licence": "CC BY 4.0. Attribution: Imagery (c) World Bank 2010, collected by RIT WASP, via OpenAerialMap (Open Imagery Network contributors). OIN: 'All imagery contained in OIN is licensed CC-BY 4.0, with attribution as contributors of Open Imagery Network.' Image metadata: \"license\": \"CC-BY 4.0\".",
+  "licence_url": "https://openaerialmap.org/about/",
+  "nodata": "1.28% pure-black nodata pixels (and a 1 px halo) filled from the nearest valid pixel"
+}

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rescue Listener</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='8' cy='8' r='5' fill='%2300D46A'/></svg>">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three/three.module.min.js", "three/addons/": "./vendor/three/addons/" } }
+</script>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<header class="brand">
+  <h1><span class="dot"></span>Rescue Listener</h1>
+  <p class="tagline">A proposed rescue workflow</p>
+  <p class="tagline">Listening for knocks under rubble</p>
+</header>
+
+<div class="mode panel" id="mode"><span class="led"></span><span id="mode-label">En route</span><span class="mono clock" id="clock">00:00</span></div>
+
+<section class="panel telemetry" id="telemetry">
+  <div class="row"><span class="k">Altitude</span><span class="mono" id="t-alt">—</span></div>
+  <div class="row"><span class="k">Ground speed</span><span class="mono" id="t-spd">—</span></div>
+  <div class="row"><span class="k">Rotors</span><span class="mono" id="t-rot">—</span></div>
+  <div class="row"><span class="k">Heading</span><span class="mono" id="t-hdg">—</span></div>
+</section>
+
+<section class="panel verdict" id="verdict" data-state="idle">
+  <div class="v-label" id="v-label">En route</div>
+  <div class="v-chip" id="v-chip"></div>
+  <div class="v-wave"><canvas id="wave" aria-hidden="true"></canvas></div>
+  <div class="v-meta"><span id="v-sub">Listening node stowed</span></div>
+  <div class="v-note" id="v-note" hidden></div>
+</section>
+
+<div class="tag" id="tag" hidden><b>Target rhythm flagged</b><span>Spot marked</span></div>
+<div class="tag" id="drone-tag" hidden><b>Drone</b><span>Simulated flight</span></div>
+
+<footer class="foot" id="foot">
+  <div class="prov" id="prov">Scripted flight. Real 2010 terrain, used as a backdrop only. Awaiting verdict.</div>
+  <div class="credit" id="credit">Aerial: World Bank / RIT via OpenAerialMap, CC BY 4.0 · LiDAR: OpenTopography (public domain) · Drone: yanix, CC BY 4.0</div>
+</footer>
+<div class="keys" hidden>L listen, S target rhythm, D no rhythm, M mark, N drop node, R reset</div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>

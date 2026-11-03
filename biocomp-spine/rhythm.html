@@ -1,0 +1,616 @@
+<!doctype html><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1">
+<title>Rescue Listener</title>
+<style>
+@font-face{font-family:'Space Grotesk';src:url(/static/SpaceGrotesk.woff2) format('woff2');font-weight:500 700;font-display:swap}
+@font-face{font-family:'IBM Plex Mono';src:url(/static/IBMPlexMono.woff2) format('woff2');font-weight:400;font-display:swap}
+/* Same instrument as the scaling-law screen: blue = a knock (stimulation), coral = survivor (neurons), grey = controls. */
+:root {
+  --bg: #0A0E13; --panel: #11171E; --line: #222B35; --grid: #1A222C; --ink: #EEF2F6; --muted: #8C97A3; --dim: #4A5562;
+  --stim: #6CB6FF; --spike: #FF7A59;
+  --sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+.app[inert] .card { opacity: 0.5; }   /* no fresh state: the controls are off until the dish answers again */
+html, body { background: var(--bg); color: var(--ink); margin: 0; }
+body { font: 16px/1.5 var(--sans); caret-color: var(--stim); }
+* { font-variant-numeric: tabular-nums !important; }   /* every live number keeps its width; !important as each font: shorthand resets it */
+html { scrollbar-width: thin; scrollbar-color: var(--dim) var(--bg); }
+::selection { background: #6CB6FF55; color: var(--ink); }
+.app { max-width: 1180px; margin: 0 auto; padding-block: 28px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 22px; }
+.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+h1 { font-weight: 600; font-size: clamp(1.6rem, 3.4vw, 2.6rem); line-height: 1.08; letter-spacing: -0.02em; margin: 0; text-wrap: balance; max-width: 24ch; }
+h1 em { font-style: normal; color: var(--spike); }
+.sub { color: var(--muted); margin: 8px 0 0; max-width: 62ch; }
+.mock { text-wrap: balance; font: 500 0.8rem/1 var(--mono); color: var(--muted);
+  border: 1px solid var(--line); border-radius: 14px; padding: 7px 11px; max-width: 100%; line-height: 1.3; }
+.mock.real { color: var(--spike); border-color: #FF7A5966; }
+.stage { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 8fr); gap: 20px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.label { font: 500 0.85rem/1.3 var(--mono); color: var(--muted); display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.pad { flex: 1; min-height: 240px; border-radius: 12px; border: 1px solid var(--line); background: radial-gradient(circle at 50% 50%, #131B24 0%, #0D1218 70%);
+  color: var(--muted); font: 500 1.1rem/1.4 var(--sans); cursor: pointer; display: grid; place-items: center; text-align: center; padding: 16px;
+  transition: background-color .3s, box-shadow .3s; touch-action: manipulation; user-select: none; }
+.pad b { display: block; color: var(--ink); font-size: 1.6rem; font-weight: 600; letter-spacing: -0.02em; }
+.pad.hit { box-shadow: inset 0 0 0 2px var(--stim), 0 0 22px #6CB6FF55; transition-duration: .04s; }
+.pad:disabled { cursor: default; opacity: .55; }
+.pad:focus-visible, button:focus-visible { outline: 2px solid var(--stim); outline-offset: 2px; }
+.seg button:focus-visible { outline-offset: -2px; }   /* inside overflow:hidden: a ring outside would be cut off */
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.note { color: var(--muted); font: 0.85rem/1.4 var(--mono); max-width: 75ch; }
+.srcnote { margin: 0; max-width: 70ch; color: var(--muted); font: 0.95rem/1.5 var(--sans); }
+button.b { font: 500 1rem/1 var(--sans); border-radius: 10px; min-height: 48px; padding: 0 22px; cursor: pointer; border: 1px solid var(--ink); background: var(--ink); color: var(--bg); }
+button.b.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+button.b.ghost[aria-pressed="true"] { border-color: var(--stim); color: var(--stim); }
+#bwho button.b.ghost[aria-pressed] { border-color: var(--line); color: var(--ink); }   /* the room must not see the target before the reveal */
+button.b:disabled { opacity: .45; cursor: default; }
+button.b.state, button.b.state:disabled { opacity: 1; background: transparent; color: var(--ink); border-color: transparent; padding-left: 4px; cursor: default; pointer-events: none; }
+button.b.state::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--stim); margin-right: 9px; vertical-align: 1px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { font: 500 0.85rem/1 var(--mono); color: var(--muted); background: transparent; border: 0; padding: 7px 11px; min-height: 44px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+svg.tl { width: 100%; height: auto; display: block; }
+.tl text { font: 12px var(--mono); fill: var(--muted); }
+.verdict { font: 600 clamp(2.2rem, 5.6vw, 3.8rem)/1 var(--sans); letter-spacing: -0.035em; color: var(--muted); }
+.verdict.survivor { color: var(--spike); } .verdict.debris { color: var(--ink); }
+.verdict small { font: 500 1rem var(--sans); color: var(--muted); letter-spacing: 0; margin-left: 8px; font-variant-numeric: tabular-nums; }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 22px; font: 0.9rem/1.3 var(--mono); color: var(--muted); }
+.facts b { display: block; color: var(--ink); font: 500 1.35rem var(--sans); font-variant-numeric: tabular-nums; margin-top: 4px; }
+.facts .dish b { color: var(--spike); }
+.echo { font: 600 0.95rem/1.4 var(--sans); color: var(--ink); background: #FF7A5922; border: 1px solid var(--spike); border-radius: 8px; padding: 10px 14px; }
+.m4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 4px 0; }
+.m4 b { font-size: 1.15rem; }
+.tag:empty { display: none; }
+.verdict.empty { font: 0.9rem/1.4 var(--mono); letter-spacing: 0; }
+.facts.explore { margin-top: 6px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.facts.explore b { color: var(--muted); font-size: 1.05rem; }
+.facts .xlabel { grid-column: 1 / -1; font: 500 0.85rem/1.3 var(--mono); }
+.facts .trap, .facts .trap b { color: var(--muted); }  /* greyed, still legible: a control is a number to read */
+.bar { height: 8px; background: var(--grid); border-radius: 4px; position: relative; }
+.bar s { position: absolute; inset: 0 auto 0 0; background: var(--spike); border-radius: 4px; width: 0; transition: width .4s; }
+.bar i { position: absolute; top: -4px; bottom: -4px; left: 50%; width: 2px; background: var(--muted); }
+.hist { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; font: 0.85rem var(--mono); color: var(--muted); }
+.hist li { display: flex; gap: 12px; } .hist .s { color: var(--spike); }
+/* the slot: another task mounts the 3D rubble scene with the drone here and reads verdicts from /state */
+#scene-slot { padding: 14px 18px; color: var(--muted); font: 0.85rem var(--mono); border-style: dashed; }
+#scene-slot.on { padding: 0; border-style: solid; overflow: hidden; }
+#scene-slot iframe { display: block; width: 100%; height: min(70vh, 560px); border: 0; }
+#scene-slot iframe.focus { outline: 2px solid var(--stim); outline-offset: -2px; }   /* inside overflow:hidden, so drawn inward */
+.piles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.pile { border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; font: 0.9rem/1.3 var(--mono); color: var(--muted); min-width: 0; }
+.pile b { color: var(--ink); font: 600 1.15rem var(--sans); }
+.pile.now { border-color: var(--stim); } .pile.flag { border-color: var(--spike); } .pile.flag b { color: var(--spike); }
+.cal { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 18px 28px; align-items: start; }
+.cal .facts { grid-template-columns: 1fr; }
+.cal figure { margin: 0; min-width: 0; }
+@media (max-width: 820px) { .cal { grid-template-columns: 1fr; } .cal .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.hchart .t { fill: var(--ink); font-size: 13px; }
+.trapline { max-width: 75ch; margin: 12px 0 0; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font: 13px/1.45 var(--mono); }
+.pile .bar s { background: var(--muted); transition: width .6s; } .pile.flag .bar s { background: var(--spike); }
+.pile .bar i { left: var(--thr); background: var(--ink); }
+.bpad { min-height: 120px; flex: none; }
+.bresult { text-wrap: balance; font: 500 1.15rem/1.4 var(--sans); color: var(--ink); }
+.bsoft { font: 0.8rem/1.4 var(--mono); color: var(--muted); max-width: 75ch; }
+.btab { border-collapse: collapse; font: 0.85rem/1.3 var(--mono); color: var(--muted); width: 100%; max-width: 640px; }
+.btab th, .btab td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); font-weight: 500; }
+.btab th:first-child { text-align: left; } .btab td { color: var(--ink); } .btab tr.chance td { color: var(--muted); }
+@media (max-width: 560px) { .btab th, .btab td { padding: 6px 6px; } .m4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.who { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.who .note { margin-right: 4px; }
+@media (max-width: 560px) { #nfacts { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .piles { grid-template-columns: 1fr; gap: 8px; } .pile { padding: 10px 12px; } }
+.tag { font: 500 0.8rem/1 var(--mono); color: var(--muted); border: 1px solid var(--line); border-radius: 12px; padding: 4px 8px; max-width: 100%; line-height: 1.3; text-transform: none; }
+.result { font: 600 clamp(1.6rem, 4vw, 2.4rem)/1.1 var(--sans); letter-spacing: -0.02em; }
+.result.pass { color: var(--spike); } .result.fail { color: var(--ink); }
+.result small { display: block; font: 500 0.95rem/1.4 var(--sans); color: var(--muted); letter-spacing: 0; margin-top: 6px; max-width: 75ch; }
+#nresult { font-size: clamp(1.15rem, 2.4vw, 1.45rem); }   /* exploratory: visibly smaller than the pre-registered result */
+.hchart { width: 100%; height: auto; display: block; }
+.nfig { margin: 0; min-width: 0; }
+.hchart text { font: 12px var(--mono); fill: var(--muted); }
+.hkey { display: flex; gap: 16px; flex-wrap: wrap; }
+.rasters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 18px; }
+.rasters .note { grid-column: 1 / -1; margin: 0; }
+.ras { margin: 0; min-width: 0; } .ras svg { width: 100%; height: auto; display: block; }
+.ras figcaption { font: 500 0.8rem/1.4 var(--mono); color: var(--ink); margin-bottom: 4px; } .ras figcaption span { color: var(--muted); }
+@media (max-width: 560px) { .rasters { grid-template-columns: 1fr; } .ras g[fill-opacity] { fill-opacity: 0.28; } }
+.how { color: var(--muted); font-size: 0.92rem; max-width: 75ch; margin: 0; }
+.how b { color: var(--ink); font-weight: 500; }
+@media (max-width: 820px) { .stage { grid-template-columns: 1fr; } .facts { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (prefers-reduced-motion: reduce) { .pad, .bar s { transition: none; } }
+</style>
+
+<div class="app" id="app">
+  <div class="top">
+    <div>
+      <h1>Same final pulse, two different pasts: <em>does the dish respond differently?</em></h1>
+      <p class="sub">The pre-registered test plays one of two four-pulse rhythms, then the same probe pulse or a silent slot, and counts spikes 20–250 ms after the scheduled probe. Below it, the knock demo asks the same question of a rescue tap: a survivor answering “tap five times”.</p>
+    </div>
+    <span class="mock" id="pill">Source: checking…</span>
+  </div>
+
+  <section class="card" id="pcard" aria-label="Probe-omission experiment">
+    <div class="label"><span>Pre-registered experiment · same pulse, different past</span><span class="tag" id="ptag"></span></div>
+    <div class="result" id="presult" aria-live="polite">Not run yet</div>
+    <div class="echo" id="pecho" role="alert" hidden>Device reported no stim echoes, so pulse checks can't confirm delivery. Trials are kept and flagged.</div>
+    <div class="rasters" id="prast"></div>
+    <div class="facts" id="pfacts" hidden>
+      <span class="dish">D = (A+ − A−) − (B+ − B−)<b id="pd">–</b><span id="pci"></span></span>
+      <span>Condition means, raw Y<span class="m4"><span>A+<b id="mAp">–</b></span><span>A−<b id="mAm">–</b></span><span>B+<b id="mBp">–</b></span><span>B−<b id="mBm">–</b></span></span><span id="pmeansn">pooled spikes 20–250 ms after the scheduled probe</span></span>
+      <span>Flagged trials<b id="pfail">–</b><span id="pburst"></span></span>
+    </div>
+    <div class="facts explore" id="pexp" hidden>
+      <span class="xlabel">Exploratory · not tests, no p-values, not the result</span>
+      <span>Sensitivity: mean D<b id="psens">–</b><span id="psensn"></span></span>
+      <span>Descriptive<b id="pdesc">–</b><span id="pdescn"></span></span>
+      <span>Drift: first half / second<b id="pdrift">–</b><span>mean D</span></span>
+      <span>A vs B decoder<b id="psec">–</b><span>first half trains, second half scores once</span></span>
+    </div>
+    <div class="row"><button class="b" id="prun" type="button">Run the experiment</button><span class="note" id="pnote"></span></div>
+  </section>
+
+
+  <section class="card" id="ncard" aria-label="Noise filter, exploratory">
+    <div class="label"><span>Noise filter (exploratory) · not the pre-registered test</span><span class="tag" id="ntag"></span></div>
+    <div class="result" id="nresult" aria-live="polite">Not run yet</div>
+    <figure class="nfig" id="nbox" hidden><svg class="hchart" id="nplot" role="img" aria-label="Response to each pulse in condition 1"></svg></figure>
+    <div class="facts" id="nfacts" hidden>
+      <span>Electrode A, knock vs rumble<b id="nA">–</b><span id="nAn"></span></span>
+      <span>Electrode B, knock vs rumble<b id="nB">–</b><span id="nBn"></span></span>
+      <span>Mean of the two<b id="nM">–</b><span id="nMn"></span></span>
+    </div>
+    <div class="row"><button class="b ghost" id="nrun" type="button">Run the noise filter</button><span class="note" id="nnote"></span></div>
+    <p class="srcnote">Idea from Eytan, Brenner &amp; Marom 2003: in rat cortical networks, responses to an input that kept repeating (our background rumble) faded while responses to an occasional one (our knock) held up.<br>
+      This is a faster, shorter, gentler version (2 Hz, 3 min, 2 µA), not the paper's protocol. The index is Ulanovsky's (2003). Exploratory.</p>
+  </section>
+
+  <div class="stage" id="stage">
+    <section class="card" aria-label="Knock pad">
+      <div class="label"><span class="seg" role="group" aria-label="Listen to"><button type="button" id="mk" aria-pressed="true">Knocks</button><button type="button" id="me" aria-pressed="false">Sound</button></span><span id="status">Ready</span></div>
+      <button class="pad" id="pad" type="button" disabled><span><b id="padh">Calibrate first</b><span id="padt">A decoder learns to tell 40 target from 40 irregular rhythms from the dish's responses.</span></span></button>
+      <div class="row">
+        <button class="b ghost" id="run" type="button">Calibrate</button>
+        <button class="b ghost" id="mic" type="button" aria-pressed="false">Use the mic</button>
+        <button class="b ghost" id="scan" type="button">Scan electrodes · 30 s</button>
+        <button class="b ghost" id="five" type="button" hidden>Play a five-tap reply</button>
+        <button class="b ghost" id="blind" type="button" hidden>Blind piles</button>
+      </div>
+      <span class="note" id="micnote">Tap the pad or press Space. A pause of 1.2 s ends the rhythm.</span>
+      <span class="note" id="nosnd" hidden>Sound clips not in this kit.</span>
+    </section>
+
+    <section class="card" aria-label="Rhythm and verdict">
+      <div class="label"><span>Dish responses · free knocks</span><span class="tag" id="vtag"></span></div>
+      <div class="note" id="vid"></div>
+      <svg class="tl" id="tl" viewBox="0 0 640 96" role="img" aria-label="Knock timeline"></svg>
+      <div class="verdict empty" id="verdict" aria-live="polite">Knock on the pad or press Space; the dish's responses appear here.</div>
+      <div class="note" id="soft"></div>
+      <ul class="hist" id="hist"></ul>
+    </section>
+  </div>
+
+  <section class="card" id="bcard" aria-label="Blind piles" hidden>
+    <div class="label"><span>Blind piles · your choice stays hidden until Reveal</span><span class="tag" id="btag"></span></div>
+    <div class="piles" id="piles"></div>
+    <button class="pad bpad" id="bpad" type="button" disabled><span><b id="bpadh">Tap here</b><span>or press Space, or knock near the mic</span></span></button>
+    <div class="row" id="brow">
+      <button class="b" id="bgo" type="button">Listen to pile 1 · 6 s</button>
+      <span class="note" id="bstat"></span>
+    </div>
+    <div class="who" id="bwho" hidden><span class="note">Which piles were targets? Pick none, some or all. Picks don't light up, so the room can't see them.</span>
+      <button class="b ghost" type="button" data-t="1" aria-pressed="false">Pile 1</button><button class="b ghost" type="button" data-t="2" aria-pressed="false">Pile 2</button><button class="b ghost" type="button" data-t="3" aria-pressed="false">Pile 3</button>
+      <button class="b" id="breveal" type="button">Reveal</button></div>
+    <div class="bresult" id="bresult" aria-live="polite" hidden></div>
+    <div class="bsoft" id="bsoft" hidden></div>
+    <span class="note" id="bnote">Choose any piles in secret: none, some or all three. On a target pile, tap the five-tap reply; on the others, tap like rubble falling. Every pile gets live taps, and the screen shows nothing about them until Reveal.</span>
+    <div class="row"><button class="b ghost" id="bclose" type="button" hidden>Back to free knocking</button></div>
+  </section>
+
+  <section class="card" aria-label="Held-out tally">
+    <div class="label"><span>Calibration check · cross-validated, a diagnostic, not the evidence</span><span class="tag" id="ctag"></span></div>
+    <div class="cal">
+      <figure><svg class="hchart" id="achart" role="img" aria-label="Held-out accuracy: the dish, shuffled labels and software on timing, against 50% chance"></svg>
+        <p class="trapline" id="trap"></p></figure>
+      <div class="facts">
+        <span>Dish (calibration)<b id="acc">–</b><span id="calp"></span></span>
+        <span>Input electrode<b id="inch">27</b><span id="inwhy">default</span></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="scene-slot" data-slot="rescue-scene" aria-label="Rescue scene" hidden></section>
+
+  <p class="how" id="how"></p>
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const HOW = "<b>How it's measured:</b> calibration plays {k} target rhythms (SOS, a repeated pattern, or five even taps answering “tap five times”) and {k} matched irregular sequences (the same number of knocks at random times over the same span) into one electrode. A decoder learns each from the neurons' response after every pulse, scored on sequences it never saw. Shuffled labels show what luck reaches. <b>Software on timing alone</b> is the question \"couldn't software do it?\" asked honestly: it can. What is tested is whether the dish's responses, read the same way, separate the two classes better than shuffled labels; on the practice dish they do not. The greyed artefact trap reads the knocks back from the input electrode's own trace, stimulation included: it shows what the pulses alone give away, and is never counted. ";
+  const EAR = "<b>Ear mode:</b> the dish hears the sound, not knock times. Each 50 ms of audio is split into 16 pitch bands laid along a strip of 16 electrodes, low to high, so neighbouring pitches drive neighbouring electrodes; the (at most) 3 loudest bands that stand out over the clip's background each pulse their electrode. Calibration plays 40 target-rhythm and 40 irregular clips; both classes use the same knock sounds, so only timing tells them apart. The decoder and the controls are knock mode's: shuffled labels, the cells-off check, and software on the same pulse timings. ";
+  const SRC = {
+    mock: "<b>Simulator:</b> a leaky integrate-and-fire (LIF) spiking network computed live, with paired-pulse facilitation and depression; its numbers say nothing about living tissue. The control run with the network switched off sits at chance.",
+    "cells off": "<b>Control:</b> the LIF network switched off, so it should sit at chance.",
+    "cl-sdk simulator": "<b>SDK simulator:</b> a leaky integrate-and-fire (LIF) spiking network computed live. It can respond to stimulation; its score is not evidence about living tissue.",
+    CL1: "<b>Live on a CL1:</b> the tally is whatever this dish gives.",
+  };
+  const ns = "http://www.w3.org/2000/svg", tl = $("tl");
+  let lastTl = [[], null];
+  function drawTimeline(knocks, cls) {
+    lastTl = [knocks, cls];
+    const W = Math.max(280, Math.round(tl.getBoundingClientRect().width || 640));   // viewBox = pixels, so the 12px labels stay 12px
+    tl.setAttribute("viewBox", `0 0 ${W} 96`);
+    const span = Math.max(2000, knocks.length ? knocks[knocks.length - 1] : 0), X = t => 16 + t / span * (W - 32);
+    let h = `<line x1="16" x2="${W - 16}" y1="60" y2="60" stroke="var(--grid)"/>`;
+    for (let s = 0; s <= span / 1000; s++) h += `<text x="${X(s * 1000)}" y="84" text-anchor="middle">${s} s</text>`;
+    const c = cls === "survivor" ? "var(--spike)" : cls === "debris" ? "var(--ink)" : "var(--stim)";
+    knocks.forEach(t => h += `<rect x="${X(t) - 2}" y="18" width="4" height="42" rx="2" fill="${c}"/>`);
+    tl.innerHTML = h;
+  }
+  drawTimeline([], null);
+  addEventListener("resize", () => drawTimeline(...lastTl));
+
+  // the 3D scene (another page, same origin): mounted when the server has it, driven through window.rescue
+  let scene = null, sceneTried = false;
+  function mountScene() {
+    sceneTried = true;
+    const gl = document.createElement("canvas");
+    if (!(gl.getContext("webgl2") || gl.getContext("webgl"))) {   // the iframe would sit blank
+      $("scene-slot").textContent = "3D scene needs WebGL; the results here are unaffected"; $("scene-slot").hidden = false; return;
+    }
+    const f = document.createElement("iframe");
+    f.src = "/scene/index.html"; f.title = "Rescue scene: drone over the rubble";
+    f.onload = () => { scene = f.contentWindow; };
+    addEventListener("blur", () => setTimeout(() => f.classList.toggle("focus", document.activeElement === f)));   // a focused iframe matches no :focus from this page: ring it by hand
+    addEventListener("focus", () => f.classList.remove("focus"));
+    $("scene-slot").textContent = ""; $("scene-slot").appendChild(f); $("scene-slot").classList.add("on"); $("scene-slot").hidden = false;
+  }
+  const rescue = (fn, ...a) => { try { scene && scene.rescue && scene.rescue[fn](...a); } catch (e) { console.error("scene." + fn, e); } };
+  const sceneSource = src => src === "CL1" ? "live" : src === "cl-sdk simulator" ? "simulator" : "practice";
+  let feed = "practice";   // the scene's source label for every call, from the latest /state
+  let sceneRound = false;   // true once dropNodes ran for this round; setPileVerdicts goes once, at the reveal
+
+  // ---- knocks: pad, space bar, or mic onsets; 1.2 s of quiet sends the rhythm
+  let ready = false, ear = false, cur = [], timer = null, sentId = null, pile = 0, bphase = null, blindOn = false, closed = false, soft = "Software on timing alone";
+  async function hear(pattern) {   // the server picks a rescue-data clip (ear mode: never a training clip); the room hears it too
+    $("verdict").className = "verdict"; $("verdict").textContent = "The dish is listening…"; rescue("listen", true, feed);
+    try {
+      const r = await (await fetch("/hear", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(pattern ? { pattern } : {}) })).json();
+      if (r.error) { $("verdict").textContent = r.error; return; }
+      sentId = r.id; drawTimeline(r.knocks, null);
+      try { new Audio(`/wav/${r.clip}`).play(); } catch (e) {}
+    } catch (e) { $("verdict").textContent = "Could not reach the dish"; }
+  }
+  const mode = to => fetch("/mode", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ listen: to }) })
+    .then(r => r.json()).then(r => { if (r.error) $("micnote").textContent = r.error; });
+  $("mk").onclick = () => mode("knock"); $("me").onclick = () => mode("ear");
+  function knock() {
+    if (!ready) return;
+    if (ear) { if (!$("pad").disabled) { $("pad").disabled = true; hear(); } return; }
+    const t = performance.now();
+    if (cur.length && t - cur[cur.length - 1] < 60) return;   // one knock, not a bounce
+    if (pile) { cur.push(t); $("bpad").classList.add("hit"); setTimeout(() => $("bpad").classList.remove("hit"), 90); return; }   // blind: no trace, no count; the window sends
+    if (blindOn) return;   // between pile windows the free pad is off
+    if (!cur.length) rescue("listen", true, feed);
+    cur.push(t);
+    $("pad").classList.add("hit"); setTimeout(() => $("pad").classList.remove("hit"), 90);
+    drawTimeline(cur.map(v => v - cur[0]), null);
+    $("verdict").className = "verdict"; $("verdict").textContent = `${cur.length} knock${cur.length > 1 ? "s" : ""}…`;
+    clearTimeout(timer); timer = setTimeout(send, 1200);
+  }
+  async function send() {
+    const knocks = cur.map(v => Math.round(v - cur[0])); cur = [];
+    if (knocks.length < 3) { $("verdict").textContent = "Knock at least 3 times"; return; }
+    $("verdict").textContent = "The dish is listening…";
+    try {
+      const r = await (await fetch("/knock", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ knocks }) })).json();
+      if (r.error) $("verdict").textContent = r.error; else sentId = r.id;
+    } catch (e) { $("verdict").textContent = "Could not reach the dish"; }
+  }
+  $("pad").addEventListener("pointerdown", e => { e.preventDefault(); knock(); });
+  $("bpad").addEventListener("pointerdown", e => { e.preventDefault(); knock(); });
+  document.addEventListener("keydown", e => {   // Space knocks, except on the other buttons where it presses them
+    if (e.code !== "Space" || (e.target.tagName === "BUTTON" && e.target !== $("pad") && e.target !== $("bpad"))) return;
+    e.preventDefault(); if (!e.repeat) knock();
+  });
+
+  let mic = null;
+  $("mic").onclick = async () => {
+    if (mic) { mic.stop(); mic = null; $("mic").setAttribute("aria-pressed", "false"); $("micnote").textContent = "Mic off."; return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      const ctx = new AudioContext(), an = ctx.createAnalyser(); an.fftSize = 512;
+      ctx.createMediaStreamSource(stream).connect(an);
+      const buf = new Float32Array(an.fftSize); let base = 0.01, last = 0, on = true;
+      (function loop() {
+        if (!on) return;
+        an.getFloatTimeDomainData(buf);
+        let e = 0; for (const v of buf) e += v * v; const rms = Math.sqrt(e / buf.length), now = performance.now();
+        if (rms > Math.max(base * 4, 0.02) && now - last > 80) { last = now; knock(); }   // onset: a jump over the room's level
+        else if (now - last > 80) base = 0.97 * base + 0.03 * rms;                        // the room's level adapts
+        requestAnimationFrame(loop);
+      })();
+      mic = { stop: () => { on = false; stream.getTracks().forEach(t => t.stop()); ctx.close(); } };
+      $("mic").setAttribute("aria-pressed", "true"); $("micnote").textContent = "Listening: knock on the table near the laptop.";
+    } catch (e) { $("micnote").textContent = "No mic here (needs https or localhost). Tap the pad or press Space."; }
+  };
+
+  $("prun").onclick = () => { $("prun").disabled = true; fetch("/probe", { method: "POST" }); };
+  const PROV = { CL1: "Live: CL1", mock: "Practice simulator (not the LIF network)", "cells off": "Simulator running live · LIF network off (control)", "cl-sdk simulator": "Simulator running live · LIF spiking network", replay: "Replay" };
+  const provOf = src => PROV[src] || String(src);
+  const resultTail = (nullLine, src) => { const l = provOf(src).replace(/ \((.+)\)$/, ", $1"); return nullLine ? nullLine.replace(/\.?$/, ` (${l}). `) : `${l}. `; };
+  // ---- pure chart and result code (tests run this block in node) ----
+  const sgn = (v, d = 2) => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(d);
+  function artefactChart(c, src, soft, W) {   // the reader's numbers, as bars against chance; the trap is text below (trapLine), never a bar
+    const who = src === "CL1" ? "The cells" : src === "cells off" ? "LIF network off (control)" : src === "mock" ? "Practice simulator" : "LIF spiking network";
+    const rows = [[who, "stimulation window excluded", c && c.acc, "var(--ink)"], ["Shuffled labels", "what luck reaches", c && c.shuffled, "var(--muted)"],
+      [soft, `knock timing alone, no ${src === "CL1" ? "cells" : "network"}`, c && c.timing_only, "var(--muted)"]];
+    const x1 = W - 64, X = v => v * x1, top = 26, rh = 54, wrap = W < 480, H = top + rows.length * rh + (wrap ? 38 : 22);
+    let g = "";
+    rows.forEach(([name, sub, v, col], i) => {
+      const y = top + i * rh, has = typeof v === "number";
+      g += `<text class="t" x="0" y="${y + 13}">${name}</text><text x="0" y="${y + 29}">${sub}</text>`;
+      g += `<rect x="0" y="${y + 36}" width="${x1}" height="12" rx="3" fill="var(--grid)"/>`;
+      if (has) g += `<rect x="0" y="${y + 36}" width="${X(v)}" height="12" rx="3" fill="${col}"/>`;
+      g += `<text class="t" x="${W - 4}" y="${y + 46}" text-anchor="end">${has ? Math.round(v * 100) + "%" : "–"}</text>`;
+    });
+    rows.forEach((_, i) => g += `<line x1="${X(0.5)}" x2="${X(0.5)}" y1="${top + i * rh + 32}" y2="${top + i * rh + 52}" stroke="var(--ink)" stroke-dasharray="4 3"/>`);   // across the bars only, never the labels
+    g += `<text x="${X(0.5)}" y="12" text-anchor="middle">chance 50% ┆</text>`;
+    g += wrap ? `<text x="0" y="${H - 20}">${provOf(src)}</text><text x="0" y="${H - 4}">held out, cross-validated</text>`   // a phone can't fit one line
+      : `<text x="0" y="${H - 4}">${provOf(src)} · held out, cross-validated</text>`;
+    return [H, g];
+  }
+  const pc = v => Math.round(v * 100) + "%";
+  function calVerdict(c) {   // above luck only past 2 SD of the reader's own 20 shuffled-label accuracies (rhythm.evaluate's shuffled_sd)
+    const sd = c.shuffled_sd != null ? c.shuffled_sd : 0.5 / Math.sqrt(c.n);   // older calibrations: the binomial SE at 50%
+    return [c.acc - c.shuffled > 2 * sd ? "Above shuffled labels" : "No signal beyond luck", `${pc(c.acc)} · shuffled labels ${pc(c.shuffled)}`];
+  }
+  const trapLine = c => `Artefact trap, never counted: the input electrode's own trace scores ${c && c.trap != null ? pc(c.trap) : "–"}. That is what the pulses alone give away.`;
+  const chipTime = (sec, src) => `about ${Math.max(1, Math.round(sec / 60))} min ${src === "CL1" ? "on the chip" : "(simulator)"}`;
+  const above = c => calVerdict(c)[0] === "Above shuffled labels";
+  const pileNote = c => `Decoder ${pc(c.acc)} on ${c.n} held-out sequences · shuffled labels ${pc(c.shuffled)} · ${above(c) ? "above chance" : "near chance"}`;
+  function pileOpts(s) {   // the scene's green hit only for a decoder above shuffled labels: a decoder at chance names no target
+    const one = s.targets && s.targets.length === 1 ? s.targets[0] : null;
+    return Object.assign({ target: s.calib && above(s.calib) ? one : null }, s.calib ? { note: pileNote(s.calib) } : {});
+  }
+  function nfResult(r, src) {   // exploratory: an index and a bootstrap interval, never a p-value
+    const head = { none: "No filtering detected", positive: "Knocks drew relatively more than the rumble (positive SSA contrast)", negative: "Knocks drew relatively less than the rumble (negative SSA contrast)" }[r.verdict];
+    return [head, `${resultTail(null, src)}Exploratory, not the pre-registered test. Mean SSA index ${sgn(r.mean)}, 95% CI ${sgn(r.ci[0])} to ${sgn(r.ci[1])} (bootstrap over ${r.n} pulses). ${r.flagged.n} of ${r.n} pulses flagged. The conditions run in a fixed order, so drift or carry-over can make this contrast; the interval resamples pulses only.`];
+  }
+  function nfPlot(live, a, b, n, W) {   // condition 1: A frequent (the rumble), B rare (the knock)
+    const wrap = W < 480, pts = live.filter(t => t.cond === 1), H = wrap ? 240 : 226, l = 36, top = wrap ? 80 : 66, bot = H - 26;   // a phone gets the unit on two lines
+    const ymax = Math.max(1, ...pts.map(t => t.y)), X = i => l + i / Math.max(1, n - 1) * (W - l - 8), Y = v => bot - v / ymax * (bot - top);
+    const f = pts.filter(t => !t.rare), r = pts.filter(t => t.rare);
+    let g = `<defs><linearGradient id="fade" gradientUnits="userSpaceOnUse" x1="${l}" x2="${W - 8}" y1="0" y2="0"><stop offset="0" stop-color="var(--ink)" stop-opacity="0.95"/><stop offset="1" stop-color="var(--ink)" stop-opacity="0.3"/></linearGradient></defs>`;
+    g += `<line x1="${l}" x2="${W - 8}" y1="${bot}" y2="${bot}" stroke="var(--grid)"/><text x="${l - 6}" y="${bot}" text-anchor="end">0</text><text x="${l - 6}" y="${top + 4}" text-anchor="end">${ymax}</text>` + (wrap ? `<text x="${l}" y="${top - 26}">spikes per pulse, all read electrodes,</text><text x="${l}" y="${top - 12}">20–250 ms after it</text>`
+      : `<text x="${l}" y="${top - 12}">spikes per pulse, all read electrodes, 20–250 ms after it</text>`);
+    g += `<text x="${l}" y="${H - 6}">pulse 1</text><text x="${W - 8}" y="${H - 6}" text-anchor="end">${n}</text>`;
+    if (f.length > 1) g += `<polyline fill="none" stroke="url(#fade)" stroke-width="1.5" points="${f.map(t => `${X(t.i).toFixed(1)},${Y(t.y).toFixed(1)}`).join(" ")}"/>`;
+    r.forEach(t => g += `<circle cx="${X(t.i).toFixed(1)}" cy="${Y(t.y).toFixed(1)}" r="4.5" fill="var(--spike)"/>`);
+    g += `<line x1="0" x2="20" y1="10" y2="10" stroke="var(--ink)" stroke-width="1.5"/><text x="28" y="14"><tspan class="t">Background rumble</tspan> · electrode ${a}, 90%</text>`;
+    g += `<circle cx="10" cy="30" r="4.5" fill="var(--spike)"/><text x="28" y="34"><tspan class="t">Knock</tspan> · electrode ${b}, 10%</text>`;
+    return [H, g];
+  }
+  // ---- end pure ----
+  const CN = { "A+": "History A + probe", "A-": "History A, probe omitted", "B+": "History B + probe", "B-": "History B, probe omitted" };
+  function raster(c, trials, d) {
+    const win = trials[0].win || d.y_window_ms, W = 320, x0 = -200, x1 = d.probe_ms + win[1], rows = trials.filter(t => t.cond === c);
+    const H = 18 + Math.max(rows.length, 6) * 4, X = t => 4 + (t - x0) / (x1 - x0) * (W - 8);
+    let g = "";
+    const pulses = d.histories_ms[c[0]].concat(c[1] === "+" ? [d.probe_ms] : []);
+    g += pulses.map(t => `<path d="M${X(t) - 4},2 L${X(t) + 4},2 L${X(t)},10 Z" fill="var(--stim)"/>`).join("");
+    g += `<line x1="${X(d.probe_ms)}" x2="${X(d.probe_ms)}" y1="12" y2="${H}" stroke="var(--ink)" stroke-width="1.5" ${c[1] === "-" ? 'stroke-dasharray="3 3"' : ""}/>`;
+    const tw = X(1) - X(0);  // one tick is one ms wide: pooled electrodes fire most ms, so wide ticks merge into bars
+    rows.forEach((t, j) => { const y = 16 + j * 4; g += `<g fill="${t.flag ? "var(--muted)" : "var(--spike)"}" fill-opacity="0.55">` + t.raster.map(ms => `<rect x="${X(ms)}" y="${y}" width="${tw}" height="3"/>`).join("") + "</g>"; });
+    const wx = X(d.probe_ms + win[0]), ww = X(x1) - wx;
+    g += `<rect x="${wx}" y="13" width="${ww}" height="${H - 13}" fill="var(--ink)" fill-opacity="0.07" stroke="var(--ink)" stroke-opacity="0.6" stroke-width="0.6"/>` +
+      "";
+    return `<figure class="ras"><figcaption>${CN[c]} <span>${rows.length} trial${rows.length === 1 ? "" : "s"}</span></figcaption><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${CN[c]}: spikes by time">${g}</svg></figure>`;
+  }
+  function drawProbe(s) {
+    const r = s.probe, g = s.probe_progress, d = s.probe_design, n2 = v => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(2);
+    $("ptag").textContent = provOf(s.source);
+    $("prun").hidden = s.phase === "ready"; $("prun").disabled = s.running || s.phase !== "idle" || s.listen === "ear";   // /probe runs in knock mode only
+    $("prun").textContent = r ? "Run it again (a new session, reported separately)" : `Run the experiment · ${s.probe_trials} trials`;
+    const trials = s.probe_live || [];
+    $("pecho").hidden = !s.probe_no_echo;
+    $("prast").hidden = !trials.length;
+    if (trials.length) $("prast").innerHTML = ["A+", "A-", "B+", "B-"].map(c => raster(c, trials, d)).join("") +
+      `<p class="note">Blue marks: pulses. Solid line: the probe; dashed: its slot left silent. Outlined: the pre-registered read window, ${(trials[0].win || d.y_window_ms).join("–")} ms after the scheduled probe. Each row is one trial; a tick is a ms in which any read electrode spiked.</p>`;
+    if (g) { $("presult").className = "result"; $("presult").textContent = { quiet: "Recording the quiet dish", scan: `Scanning electrodes, label-blind · ${g.done} / ${g.total}`, jitter: "Checking the readout for electrical pickup" }[g.stage] || `Block ${Math.floor(g.done / 4)} of ${g.total / 4} done · trial ${g.done} / ${g.total}`; }
+    $("pnote").textContent = g ? (g.stage === "trials" ? "Every trial counts; nothing is re-run." : "The readout, window and burst rule freeze before any history is played.") : "";
+    $("pfacts").hidden = $("pexp").hidden = !(r && r.primary);
+    if (!r || g) { if (!g) $("presult").textContent = "Not run yet"; return; }
+    if (r.error) { $("presult").className = "result fail"; $("presult").textContent = "Run failed"; $("pnote").textContent = r.error; return; }
+    const p = r.primary, m = r.means, sb = r.sensitivity.no_burst, ss = r.sensitivity.baseline_subtracted, [a, b] = r.halves, sec = r.secondary,
+      ci = x => x.ci[0] == null ? "unbounded" : `${n2(x.ci[0])} to ${n2(x.ci[1])}`, de = r.descriptive;
+    $("presult").className = "result " + (r.effect ? "pass" : "fail");
+    $("presult").innerHTML = `${r.effect ? "History changes the response to the same pulse" : "No history effect detected"}` +
+      `<small>${resultTail(r.null_line, s.source)}D ${n2(p.mean)} spikes, 95% CI ${ci(p)}, sign-flip p = ${p.p.toPrecision(2)} over ${p.n} blocks. ` +
+      `Rule set before the run: p < 0.05. ${p.mde == null ? "" : `Smallest effect this run could catch 4 times in 5 (sensitivity: formula set before the run, this run's spread): ${p.mde.toFixed(1)} spikes. `}` +
+      `Readout frozen ${r.frozen.sha256.slice(0, 12)} at ${r.frozen.frozen_at.slice(11, 16)} UTC.</small>`;
+    $("pd").textContent = n2(p.mean); $("pci").textContent = `95% CI ${ci(p)} · p = ${p.p.toPrecision(2)} · median ${n2(p.median)} · D > 0 in ${Math.round(p.share_pos * 100)}% of blocks`;
+    for (const [c, id] of [["A+", "mAp"], ["A-", "mAm"], ["B+", "mBp"], ["B-", "mBm"]]) $(id).textContent = m[c] == null ? "–" : m[c].toFixed(1);
+    $("pmeansn").textContent = `pooled spikes ${r.y_window_ms[0]}–${r.y_window_ms[1]} ms after the scheduled probe, ${r.read.length} electrodes`;
+    $("psens").textContent = `${n2(sb.mean)} · ${n2(ss.mean)}`;
+    $("psensn").textContent = `without pre-onset bursts (${sb.excluded_trials} trials out) · baseline-subtracted`;
+    $("pdesc").textContent = `${n2(de.leftover.mean)} · ${de.sub_windows.map(x => n2(x.mean)).join(" · ")}`;
+    $("pdescn").textContent = `Y[A−] − Y[B−], the leftover alone · D in ${de.sub_windows.map(x => x.window_ms.join("–") + " ms").join(" and ")}`;
+    $("pdrift").textContent = `${n2(a.mean)} / ${n2(b.mean)}`;
+    $("pfail").textContent = `${r.flagged.n} of ${r.n_trials}`; $("pburst").textContent = `${r.bursts.trials_with_burst_before} with a burst before onset · baseline ${r.baseline_hz.toFixed(1)} Hz`;
+    $("psec").textContent = `${sec.correct}/${sec.n} · ${Math.round(sec.acc * 100)}%`;
+  }
+  const drawn = {};
+  function draw(id, fn, ...a) {   // viewBox = pixels, so the 12px labels stay 12px; redrawn only when something changed
+    const el = $(id), W = Math.max(280, Math.round(el.getBoundingClientRect().width || 640)), key = JSON.stringify([a, W]);
+    if (drawn[id] === key) return;
+    drawn[id] = key;
+    const [H, g] = fn(...a, W);
+    el.setAttribute("viewBox", `0 0 ${W} ${H}`); el.innerHTML = g;
+  }
+  function drawNoise(s) {
+    const r = s.nf, live = s.nf_live || [], pl = s.nf_plan, n = pl.n;
+    $("ntag").textContent = provOf(s.source);
+    $("nrun").hidden = s.phase === "ready"; $("nrun").disabled = s.running || s.phase !== "idle" || s.listen === "ear";   // the server runs it in knock mode only
+    $("nrun").textContent = r ? "Run the noise filter again" : `Run the noise filter · ${chipTime(pl.duration_s, s.source)}`;
+    $("nnote").textContent = s.listen === "ear" && !s.nf_running ? "Switch to Knocks to run the noise filter." : s.nf_running ? `Pulses so far: ${live.length} / ${2 * n} · electrodes ${pl.a} and ${pl.b}; every pulse counts, flagged ones too.`
+      : `Our settings: ${n} pulses each way, ${pl.isi_ms} ms apart, 1 pulse in 10 a knock, roles swapped after a ${pl.rest_s} s rest.`;
+    $("nbox").hidden = !live.length;
+    if (live.length) draw("nplot", nfPlot, live, (r && r.a) || pl.a, (r && r.b) || pl.b, n);
+    $("nfacts").hidden = !(r && r.ssa_a != null);
+    if (s.nf_running) {
+      $("nresult").className = "result";
+      $("nresult").textContent = live.length < n ? `Condition 1 of 2 · pulse ${live.length} / ${n}` : live.length === n ? `Resting ${pl.rest_s} s, then the roles swap` : `Condition 2 of 2 · pulse ${live.length - n} / ${n}`;
+      return;
+    }
+    if (!r) { $("nresult").className = "result"; $("nresult").textContent = "Not run yet"; return; }
+    if (r.error) { $("nresult").className = "result fail"; $("nresult").textContent = "Run failed"; $("nnote").textContent = r.error; return; }
+    const [head, small] = nfResult(r, s.source), m = r.means;
+    $("nresult").className = "result " + (r.verdict === "positive" ? "pass" : "fail");
+    $("nresult").innerHTML = `${head}<small>${small}</small>`;
+    $("nA").textContent = sgn(r.ssa_a); $("nAn").textContent = `95% CI ${sgn(r.ci_a[0])} to ${sgn(r.ci_a[1])} · electrode ${r.a}: ${m[r.a + "_rare"].toFixed(1)} spikes per knock, ${m[r.a + "_frequent"].toFixed(1)} per rumble pulse`;
+    $("nB").textContent = sgn(r.ssa_b); $("nBn").textContent = `95% CI ${sgn(r.ci_b[0])} to ${sgn(r.ci_b[1])} · electrode ${r.b}: ${m[r.b + "_rare"].toFixed(1)} spikes per knock, ${m[r.b + "_frequent"].toFixed(1)} per rumble pulse`;
+    $("nM").textContent = sgn(r.mean); $("nMn").textContent = `95% CI ${sgn(r.ci[0])} to ${sgn(r.ci[1])}, bootstrap over pulses; above 0 means the knock drew more`;
+  }
+  $("nrun").onclick = () => { $("nrun").disabled = true; fetch("/noisefilter", { method: "POST" }); };
+  $("run").onclick = () => { $("run").disabled = true; fetch("/start", { method: "POST" }); };
+  $("scan").onclick = () => { $("scan").disabled = true; fetch("/scan", { method: "POST" }); };
+  $("five").onclick = () => { $("five").disabled = true; hear("five_tap_reply"); };   // the reply to "tap five times"
+
+  // ---- blind piles: three 6 s windows of live taps; verdicts stay on the server until all three are in
+  const post = (url, body) => fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body || {}) }).then(r => r.json());
+  const list = a => a && a.length ? a.map(n => "Pile\u00a0" + n).join(", ") : "none";
+  const esc = v => String(v).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+  function drawPiles(s) {
+    const done = s.piles_phase === "done", now = +((/^listening:(\d)$/.exec(s.piles_phase || "") || [])[1] || 0);
+    $("piles").style.setProperty("--thr", done ? pct(s.threshold) : "0%");
+    $("piles").innerHTML = [1, 2, 3].map(n => {
+      const p = done ? s.piles[n - 1] : null, flag = done && s.flagged.includes(n);
+      const cls = flag ? "pile flag" : pile === n ? "pile now" : "pile";
+      const body = !p ? `<span>${pile === n ? "listening…" : now && n >= now ? "waiting" : "heard"}</span>`
+        : p.p_survivor == null ? `<span>No score: ${esc(p.dish_verdict.replace(/^(no response|dropped): /, ""))}</span>`
+        : `<div class="bar" aria-hidden="true"><s style="width:${pct(p.p_survivor)}"></s><i title="frozen threshold"></i></div><span>Target-rhythm score ${pct(p.p_survivor)}${flag ? " · flagged" : ""}</span>`;
+      return `<div class="${cls}"><b>Pile ${n}</b>${body}</div>`;
+    }).join("");
+    $("bresult").hidden = $("bsoft").hidden = !done; $("bnote").hidden = done; $("bwho").hidden = s.piles_phase !== "heard";
+    $("brow").hidden = done || s.piles_phase === "heard"; $("bpad").hidden = !now && !pile; $("bclose").hidden = !done;
+    if (done && sceneRound) {   // p_survivor null passes through: the scene shows "No score", never 0%
+      sceneRound = false;
+      // target: the operator's one true pile, so a flag can turn green; none, several or a decoder at chance -> null
+      rescue("setPileVerdicts", s.piles.map(p => ({ p_survivor: p.p_survivor })), s.flagged, sceneSource(s.source), pileOpts(s));
+    }
+    if (done) {
+      const t = s.tally;
+      const st = s.software_tally, k = s.targets.length, nums = a => a && a.length ? a.join(", ") : "none";
+      const row = (who, picked, x) => `<tr><th>${who}</th><td>${picked}</td><td>${x.hits}</td><td>${x.false_flags}</td><td>${x.misses}</td></tr>`;
+      $("bresult").innerHTML = `True target: ${list(s.targets)}. ${esc(s.outcome).replace(/(Piles?|and) (\d)/g, "$1&nbsp;$2")}.` +
+        `<table class="btab"><thead><tr><th></th><th>Flagged</th><th>Hits</th><th>False<br>flags</th><th>Misses</th></tr></thead><tbody>` +
+        row("Dish", nums(s.flagged), t) + row("Software", nums(s.software_flagged), st) +
+        `<tr class="chance"><th>Chance (coin, expected)</th><td>random</td><td>${k / 2}</td><td>${(3 - k) / 2}</td><td>${k / 2}</td></tr></tbody></table>`;
+      $("bsoft").textContent = `Chance gets a whole round right 1 time in 8 (12.5%). Bar tick: the dish threshold frozen at calibration (${pct(s.threshold)}). One blind round is a demo, not evidence.`;
+    }
+  }
+  $("blind").onclick = async () => {
+    closed = false; const r = await post("/piles");
+    if (r.error) { $("micnote").textContent = r.error; return; }
+    rescue("dropNodes", undefined, feed); sceneRound = true;
+  };
+  $("bclose").onclick = () => { closed = true; };
+  document.querySelectorAll("#bwho [data-t]").forEach(b => b.onclick = () => b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")));
+  $("breveal").onclick = async () => {
+    const targets = [...document.querySelectorAll('#bwho [data-t][aria-pressed="true"]')].map(b => +b.dataset.t);
+    const r = await post("/reveal", { targets }); if (r.error) $("bstat").textContent = r.error;
+    document.querySelectorAll("#bwho [data-t]").forEach(b => b.setAttribute("aria-pressed", "false"));
+  };
+  $("bgo").onclick = () => {
+    const n = +((/^listening:(\d)$/.exec(bphase || "") || [])[1] || 0);
+    if (!n || pile) return;
+    pile = n; cur = []; rescue("listenPile", n); $("bpadh").textContent = `Tap here for pile ${n}`; $("bpad").disabled = false;
+    const end = performance.now() + 6000;
+    (function count() {
+      const left = Math.ceil((end - performance.now()) / 1000);
+      if (left > 0) { $("bgo").textContent = `Listening to pile ${n} · ${left} s`; $("bgo").disabled = true; return setTimeout(count, 200); }
+      const knocks = cur.map(v => Math.round(v - cur[0])); cur = []; pile = 0; $("bpad").disabled = true; $("bpadh").textContent = "Tap here";
+      post("/knock", { knocks, pile: n }).then(r => { if (r.error) $("bnote").textContent = r.error; });
+    })();
+  };
+  const pct = v => Math.round(v * 100) + "%", label = v => v === "survivor" ? "Target rhythm" : "Matched irregular rhythm";
+  let shown = null;
+  async function tick() {
+    try {
+      const s = await (await fetch("/state", { signal: AbortSignal.timeout(2000) })).json();   // a poll that never answers counts as lost
+      $("app").inert = false;
+      if (s.cells_off) s.source = "cells off";   // the NO_CELLS=1 control keeps its name on every label
+      feed = sceneSource(s.source);
+      drawProbe(s); drawNoise(s);
+      $("ctag").textContent = provOf(s.source);
+      const sp = / · ([\d.]+× speed)$/.exec(s.pill); $("pill").textContent = provOf(s.source) + (sp ? " · " + sp[1] : ""); $("pill").classList.toggle("real", s.source === "CL1");
+      $("how").innerHTML = (s.listen === "ear" ? EAR : HOW.replaceAll("{k}", s.cal_total / 2)) + `Knock mode reads each pulse's response ${s.skip_ms}–${s.skip_ms + 40} ms after it (the knock-mode window); the pre-registered experiment reads 20–250 ms after the scheduled probe. ` + (SRC[s.source] || "");
+      ready = s.phase === "ready"; ear = s.listen === "ear";
+      $("mk").setAttribute("aria-pressed", String(!ear)); $("me").setAttribute("aria-pressed", String(ear));
+      $("me").disabled = !s.sound; $("nosnd").hidden = !!s.sound; $("me").title = s.sound ? "" : "Sound clips not in this kit";
+      $("mic").hidden = $("scan").hidden = ear;
+      const what = ear ? "sound clips" : "rhythms";
+      $("pad").disabled = !ready || (ear && s.pending > 0);
+      $("five").hidden = !ready; $("five").disabled = s.pending > 0;
+      bphase = s.piles_phase; blindOn = !!s.piles_phase && !ear && !closed;
+      $("blind").hidden = !ready || ear || blindOn;
+      $("bcard").hidden = !blindOn; $("stage").hidden = $("pcard").hidden = $("ncard").hidden = blindOn;   // blind mode: only the piles, no free-knock verdicts
+      if (blindOn) {
+        const n = (/^listening:(\d)$/.exec(s.piles_phase) || [])[1];
+        if (!pile) { $("bgo").disabled = !n; $("bgo").textContent = n ? `Listen to pile ${n} · 6 s` : "The dish is judging…"; }
+        $("bstat").textContent = pile ? "" : n ? `Pile ${n} of 3` : "";
+        $("btag").textContent = `${provOf(s.source)} · Manual taps`;
+        drawPiles(s);
+      }
+      $("blind").textContent = s.piles_phase === "done" ? "New blind round" : "Blind piles";
+      $("padh").textContent = ready ? (ear ? "Play a sound" : "Knock here") : s.phase === "idle" ? "Calibrate first" : "Calibrating";
+      $("padt").textContent = ready ? (ear ? `A clip the dish never trained on: target or irregular knocks, under rubble noise (${s.snr} dB)` : "or press Space")
+        : s.phase === "idle" ? `A decoder learns to tell ${s.cal_total / 2} target from ${s.cal_total / 2} irregular ${what} from the dish's responses${s.cal_s ? `, ${chipTime(s.cal_s, s.source)}` : ""}.` : `${s.cal_done} / ${s.cal_total} ${what} played`;
+      $("micnote").hidden = ear;
+      soft = ear ? "Software on the same pulse timings" : "Software on timing alone";
+      if (s.scene && !sceneTried) mountScene();
+      $("scan").disabled = s.phase !== "idle" || s.running;
+      $("scan").textContent = s.phase === "scanning" ? `Scanning · ${s.scan_done} / ${s.scan_total}` : s.picked ? "Scan again · 30 s" : "Scan electrodes · 30 s";
+      $("inch").textContent = ear ? "16" : s.input;
+      $("inwhy").textContent = ear ? "tonotopic strip, one per pitch band" : s.picked ? `picked by scan · ${s.read.length} read` : `default · ${s.read.length} read`;
+      $("status").textContent = s.error || { idle: "Ready", probe: "Probe experiment running", noisefilter: "Noise filter running", scanning: "Scanning electrodes", calibrating: `Calibrating · ${s.cal_done} / ${s.cal_total}`, fitting: "Fitting the decoder", ready: s.pending ? "Dish listening" : ear ? "Listening for sound" : "Listening for knocks" }[s.phase] || "";
+      $("run").disabled = s.running; $("run").textContent = s.phase === "idle" ? "Calibrate" : ready ? "Calibrated" : s.phase === "scanning" ? "Calibrate" : "Calibrating…";
+      $("run").classList.toggle("state", ready);
+      const c = s.calib;
+      if (c) {
+        const [words, line] = calVerdict(c);   // the verdict is the headline; the number sits below it, smaller
+        $("acc").textContent = words;
+        $("calp").textContent = `${line} · ${c.correct} of ${c.n} right, cross-validated`;
+      }
+      draw("achart", artefactChart, c, s.source, soft);
+      $("trap").textContent = trapLine(c);
+      const v = s.latest;
+      if (!v && $("verdict").classList.contains("empty"))
+        $("verdict").textContent = ear ? "Play a sound; the dish's responses appear here." : "Knock on the pad or press Space; the dish's responses appear here.";
+      if (v && v.id !== shown) {
+        shown = v.id;
+        drawTimeline(v.knocks, v.verdict);
+        $("verdict").className = "verdict " + v.verdict;
+        $("verdict").innerHTML = `${label(v.verdict)}<small>${pct(v.confidence)} confident</small>`;
+        $("soft").textContent = `${soft} says: ${label(v.timing_only.verdict)}, ${pct(v.timing_only.confidence)}` + (v.truth ? ` · the clip was ${label(v.truth)}` : "");
+        $("vtag").textContent = v.clip ? "Replay" : "Manual taps";
+        $("vid").textContent = v.clip ? `${(v.bed || "").replace(/_/g, " ")} bed · ${v.knocks.length} pulse times` : `Rhythm #${v.id} · ${v.knocks.length} knocks`;
+        const kind = c && above(c) ? v.verdict : "unsure";   // as pileOpts: a decoder at chance never shows the scene a hit
+        rescue("setVerdict", kind, v.confidence, feed);   // the scene's API: setVerdict(kind, confidence, source)
+        if (kind === "survivor") rescue("markSpot");
+        rescue("listen", false, feed);
+        $("hist").innerHTML = s.verdicts.slice(-5).reverse().map(h => `<li><span>#${h.id}</span><span class="${h.verdict === "survivor" ? "s" : ""}">${label(h.verdict)} ${pct(h.confidence)}</span><span>${h.truth ? "was " + label(h.truth) : h.knocks.length + " knocks"}</span></li>`).join("");
+      }
+    } catch (e) {   // no fresh state: never leave a stale "Live" or "Listening" screen that still takes knocks
+      ready = false; $("app").inert = true;
+      $("pill").textContent = "Connection lost · retrying"; $("pill").classList.remove("real"); $("status").textContent = "No contact with the dish";
+    }
+    setTimeout(tick, 250);
+  }
+  tick();
+})();
+</script>

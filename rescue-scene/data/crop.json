@@ -1,0 +1,8 @@
+{
+  "name": "Port-au-Prince, around the National Palace",
+  "crs": "EPSG:32618 (WGS 84 / UTM zone 18N), heights as delivered by OpenTopography",
+  "centre_wgs84": [18.5431, -72.3390],
+  "centre_utm": [780907, 2052349],
+  "bbox_utm": [780757, 2052199, 781057, 2052499],
+  "source": "Haiti 2010 earthquake airborne LiDAR, OpenTopography, DOI 10.5069/G96Q1V50, public domain"
+}

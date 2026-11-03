@@ -1,0 +1,18 @@
+{
+ "histories_ms": {"A": [0, 200, 400, 600], "B": [0, 100, 500, 600]},
+ "probe_ms": 800,
+ "onset_s": 3.0,
+ "blocks": 30,
+ "blocks_short": 20,
+ "y_window_ms": [20, 250],
+ "y_window_start_if_electrical_ms": 40,
+ "sub_windows_ms": [[20, 60], [60, 250]],
+ "select_window_ms": [40, 250],
+ "read_cap": null,
+ "jitter_check": {"pulses": 20, "spacing_ms": 250, "window_ms": [20, 40], "min_share": 0.5, "max_sd_ms": 1.0},
+ "quiet_s": 5.0,
+ "burst_lookback_ms": 1000,
+ "burst_bin_ms": 50,
+ "burst_sd": 5.0,
+ "sign_flips": 20000
+}

@@ -1,0 +1,86 @@
+{
+ "checked": "2026-11-02",
+ "note": "Each claim was checked against the source at source_url on the date above. quote is at most one sentence copied from the source. verified is true only if every number in the claim appears in the source. Where the claim as briefed is wrong but the source supports a corrected wording, verified is false and corrected_claim carries the supported wording.",
+ "claims": [
+  {
+   "id": "philippines_1990",
+   "claim": "Philippines 1990 (Noji): among those rescued alive, 88% on day 1, 35% on day 2, 9% on day 3, 0% from day 4.",
+   "figures": {
+    "day1_pct": 88,
+    "day2_pct": 35,
+    "day3_pct": 9,
+    "day4_on_pct": 0
+   },
+   "source_url": "https://sites.pitt.edu/~super1/lecture/lec32971/007.htm",
+   "source": "Supercourse lecture 32971, slide 7 notes (citing Noji, ref. 66)",
+   "location": "slide 7, speaker notes",
+   "quote": "In the 1990 Philippine earthquake, survival among the trapped also fell off rapidly with time, from 88% on Day 1, to 35% on Day 2, to 9% on Day 3, to 0% from Day 4 onward (66) .",
+   "verified": false,
+   "notes": "Numbers confirmed, denominator wrong: the slide gives 'survival among the trapped' by day (share of those extricated that day who were alive), not shares of those rescued alive. Use corrected_claim. Same slide: 333 (94%) of those extricated alive were rescued in the first 24 hours.",
+   "corrected_claim": "Of trapped people extricated on day 1, 88% were alive; day 2, 35%; day 3, 9%; day 4 onward, 0%.",
+   "corrected_claim_verified": true
+  },
+  {
+   "id": "italy_1980",
+   "claim": "1980 Campania-Irpinia, Italy earthquake: 93% of trapped people who survived were extricated within the first 24 hours.",
+   "figures": {
+    "within_24h_pct": 93,
+    "survey_n": 3619
+   },
+   "source_url": "https://sites.pitt.edu/~super1/lecture/lec32971/020.htm",
+   "source": "Supercourse lecture 32971, slide 20 notes (citing ref. 111)",
+   "location": "slide 20, speaker notes",
+   "quote": "In the Italian study, a survey of 3,619 survivors showed 1) that 93% of those who were trapped and survived were extricated within the first 24 hours and 2) that 95% of the deaths recorded occurred while the victims were still trapped in rubble (111) .",
+   "verified": true,
+   "notes": "Secondary source (lecture notes summarising Noji); the underlying study is cited as ref. 111 and was not fetched."
+  },
+  {
+   "id": "macintyre_2006",
+   "claim": "A 2006 study of 34 earthquakes: median longest survival 5.75 days.",
+   "figures": {
+    "earthquakes": 34,
+    "earthquakes_with_rescues_after_day2": 18,
+    "median_max_days": 5.75,
+    "mean_max_days": 6.8,
+    "longest_reliable_days": 14
+   },
+   "source_url": "https://www.cambridge.org/core/journals/prehospital-and-disaster-medicine/article/abs/surviving-collapsed-structure-entrapment-after-earthquakes-a-timetorescue-analysis/D24F04BFBA9EDA264EA11010418B09B5",
+   "source": "Macintyre, Barbera and Smith, 'Surviving Collapsed Structure Entrapment after Earthquakes: A Time-to-Rescue Analysis', Prehospital and Disaster Medicine 21(1), February 2006",
+   "location": "abstract, Results",
+   "quote": "The average maximum times reported from these 18 earthquakes was 6.8 days (median = 5.75 days).",
+   "verified": false,
+   "notes": "Both numbers are on the page but on different bases: 34 events met the criteria; the 5.75-day median is over 18 of them, from media reports. Use corrected_claim.",
+   "corrected_claim": "Of 34 earthquakes studied (1985-2004), 18 had media-reported rescues after day 2; across those 18 the median latest rescue was 5.75 days (mean 6.8).",
+   "corrected_claim_verified": true
+  },
+  {
+   "id": "insarag_turkiye_2023",
+   "claim": "Turkiye-Syria 2023: about 300 lives saved by international USAR teams; their live rescues peaked on day 3 (8 Feb); national responders' last live rescue came 12 days after the earthquakes.",
+   "figures": {
+    "lives_saved_international": 300,
+    "peak_live_rescues_date": "2023-02-08",
+    "peak_day": 3,
+    "last_national_live_rescue_days_post_eq": 12,
+    "last_national_live_rescue_date": "2023-02-18"
+   },
+   "source_url": "https://www.insarag.org/wp-content/uploads/2024/04/INSARAG_AAR_Turkiye_Syria.pdf",
+   "source": "INSARAG After-Action Review, Turkiye and Syria Earthquakes 2023",
+   "location": "300 saved: p15 and p29 (also p18 timeline, p56); peak: p27, Figure 7; last national rescue: p29 and p18 timeline",
+   "quote": "National responders reported their last live rescue 4 days later, a miraculous 12 days since the initial earthquakes.",
+   "verified": true,
+   "notes": "p27: 'the number of live rescues by international teams peaked on 8 February'; the earthquakes struck 6 Feb, which the report's timeline counts as day 1, so 8 Feb is day 3 (2 days post-EQ). Figure 7 counts only rescues reported on ICMS. The p18 timeline labels the last national rescue 'DAY 13, 18 FEB 2023, 12 DAYS POST-EQ', so say '12 days after', not 'day 12'. Last live rescue by INSARAG-classified teams: 14 Feb (8 days post-EQ). PDF sha256 57da85be0930de8aca86be0d357fd13c2304e70334627527b976af052b2ab3e3."
+  },
+  {
+   "id": "mexico_2017_fist",
+   "claim": "Mexico, 19 September 2017 earthquake: rescuers raised fists to call for silence so they could listen for survivors.",
+   "figures": {},
+   "source_url": "https://amp.cnn.com/cnn/2017/09/21/americas/mexico-school-tragedy-scene-marquez",
+   "source": "CNN, 21 September 2017",
+   "location": "first paragraph of the article",
+   "quote": "The shout comes, then as far as one can see, fists are raised in the air.",
+   "verified": true,
+   "notes": "The same paragraph describes the noise halting 'as rescuers in the rubble of a collapsed school listen for signs of life'. Univision also ran a photo story on the 'silent fist' gesture but returned 403 to a direct fetch. The CNN article names a child; do not reuse it. PBS NewsHour corroborates ('Moments of silence punctuated the site -- signaled by raised fists -- to help workers hear any sounds coming from survivors within the rubble.'), checked by a second reviewer, not re-fetched by me.",
+   "also_source_url": "https://www.pbs.org/newshour/world/photos-after-earthquake-strikes-mexico-community-comes-out-to-help"
+  }
+ ]
+}
