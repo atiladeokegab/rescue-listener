@@ -232,8 +232,8 @@ svg.tl { width: 100%; height: auto; display: block; }
   const HOW = "<b>How it's measured:</b> calibration plays {k} target rhythms (SOS, a repeated pattern, or five even taps answering “tap five times”) and {k} matched irregular sequences (the same number of knocks at random times over the same span) into one electrode. A decoder learns each from the neurons' response after every pulse, scored on sequences it never saw. Shuffled labels show what luck reaches. <b>Software on timing alone</b> is the question \"couldn't software do it?\" asked honestly: it can. What is tested is whether the dish's responses, read the same way, separate the two classes better than shuffled labels; on the practice dish they do not. The greyed artefact trap reads the knocks back from the input electrode's own trace, stimulation included: it shows what the pulses alone give away, and is never counted. ";
   const EAR = "<b>Ear mode:</b> the dish hears the sound, not knock times. Each 50 ms of audio is split into 16 pitch bands laid along a strip of 16 electrodes, low to high, so neighbouring pitches drive neighbouring electrodes; the (at most) 3 loudest bands that stand out over the clip's background each pulse their electrode. Calibration plays 40 target-rhythm and 40 irregular clips; both classes use the same knock sounds, so only timing tells them apart. The decoder and the controls are knock mode's: shuffled labels, the cells-off check, and software on the same pulse timings. ";
   const SRC = {
-    mock: "<b>Simulator:</b> a leaky integrate-and-fire (LIF) spiking network computed live, with paired-pulse facilitation and depression; its numbers say nothing about living tissue. The control run with the network switched off sits at chance.",
-    "cells off": "<b>Control:</b> the LIF network switched off, so it should sit at chance.",
+    mock: "<b>Practice simulator</b> (not the LIF network): a simple simulated network with paired-pulse facilitation and depression; its numbers say nothing about living tissue. The control run with the network switched off sits at chance.",
+    "cells off": "<b>Control:</b> the practice simulator with its network switched off, so it should sit at chance.",
     "cl-sdk simulator": "<b>SDK simulator:</b> a leaky integrate-and-fire (LIF) spiking network computed live. It can respond to stimulation; its score is not evidence about living tissue.",
     CL1: "<b>Live on a CL1:</b> the tally is whatever this dish gives.",
   };
@@ -339,13 +339,13 @@ svg.tl { width: 100%; height: auto; display: block; }
   };
 
   $("prun").onclick = () => { $("prun").disabled = true; fetch("/probe", { method: "POST" }); };
-  const PROV = { CL1: "Live: CL1", mock: "Practice simulator (not the LIF network)", "cells off": "Simulator running live · LIF network off (control)", "cl-sdk simulator": "Simulator running live · LIF spiking network", replay: "Replay" };
+  const PROV = { CL1: "Live: CL1", mock: "Practice simulator (not the LIF network)", "cells off": "Practice simulator · network off (control)", "cl-sdk simulator": "Simulator running live · LIF spiking network", replay: "Replay" };
   const provOf = src => PROV[src] || String(src);
   const resultTail = (nullLine, src) => { const l = provOf(src).replace(/ \((.+)\)$/, ", $1"); return nullLine ? nullLine.replace(/\.?$/, ` (${l}). `) : `${l}. `; };
   // ---- pure chart and result code (tests run this block in node) ----
   const sgn = (v, d = 2) => (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(d);
   function artefactChart(c, src, soft, W) {   // the reader's numbers, as bars against chance; the trap is text below (trapLine), never a bar
-    const who = src === "CL1" ? "The cells" : src === "cells off" ? "LIF network off (control)" : src === "mock" ? "Practice simulator" : "LIF spiking network";
+    const who = src === "CL1" ? "The cells" : src === "cells off" ? "Network off (control)" : src === "mock" ? "Practice simulator" : "LIF spiking network";
     const rows = [[who, "stimulation window excluded", c && c.acc, "var(--ink)"], ["Shuffled labels", "what luck reaches", c && c.shuffled, "var(--muted)"],
       [soft, `knock timing alone, no ${src === "CL1" ? "cells" : "network"}`, c && c.timing_only, "var(--muted)"]];
     const x1 = W - 64, X = v => v * x1, top = 26, rh = 54, wrap = W < 480, H = top + rows.length * rh + (wrap ? 38 : 22);
@@ -537,6 +537,16 @@ svg.tl { width: 100%; height: auto; display: block; }
       post("/knock", { knocks, pile: n }).then(r => { if (r.error) $("bnote").textContent = r.error; });
     })();
   };
+  // off a CL1 or a replayed recording there is no dish: every word on the page says network
+  const SIMWORDS = [[/\bdish's\b/g, "network's"], [/\bDish\b/g, "Network"], [/\bdish\b/g, "network"], [/\bthe neurons'/g, "the network's"], [/\bcells-off\b/g, "network-off"]];
+  const simWords = () => {
+    if (!document.createTreeWalker) return;   // the node test stub has no DOM walker
+    const sw = v => SIMWORDS.reduce((t, [a, b]) => t.replace(a, b), v);
+    const w = document.createTreeWalker($("app"), NodeFilter.SHOW_TEXT);
+    for (let n; (n = w.nextNode());) { const v = sw(n.nodeValue); if (v !== n.nodeValue) n.nodeValue = v; }
+    $("app").querySelectorAll("[aria-label]").forEach(e => e.setAttribute("aria-label", sw(e.getAttribute("aria-label"))));
+  };
+  let simPath = false;
   const pct = v => Math.round(v * 100) + "%", label = v => v === "survivor" ? "Target rhythm" : "Matched irregular rhythm";
   let shown = null;
   async function tick() {
@@ -544,7 +554,7 @@ svg.tl { width: 100%; height: auto; display: block; }
       const s = await (await fetch("/state", { signal: AbortSignal.timeout(2000) })).json();   // a poll that never answers counts as lost
       $("app").inert = false;
       if (s.cells_off) s.source = "cells off";   // the NO_CELLS=1 control keeps its name on every label
-      feed = sceneSource(s.source);
+      feed = sceneSource(s.source); simPath = s.source !== "CL1" && s.source !== "replay";
       drawProbe(s); drawNoise(s);
       $("ctag").textContent = provOf(s.source);
       const sp = / · ([\d.]+× speed)$/.exec(s.pill); $("pill").textContent = provOf(s.source) + (sp ? " · " + sp[1] : ""); $("pill").classList.toggle("real", s.source === "CL1");
@@ -609,6 +619,7 @@ svg.tl { width: 100%; height: auto; display: block; }
       ready = false; $("app").inert = true;
       $("pill").textContent = "Connection lost · retrying"; $("pill").classList.remove("real"); $("status").textContent = "No contact with the dish";
     }
+    if (simPath) simWords();
     setTimeout(tick, 250);
   }
   tick();

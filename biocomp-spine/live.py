@@ -37,10 +37,10 @@ def _source():
                     off=list(CORNERS), array="MEA · 60 electrodes")
     src = bci.source()
     if src == "mock":
-        what = "simulator check, cells off" if os.environ.get("NO_CELLS") == "1" else "simulated neurons"
-        pill = f"Practice dish · {what} · {SPEED:g}× speed"
+        what = "network off (control)" if os.environ.get("NO_CELLS") == "1" else "not the LIF network"
+        pill = f"Practice simulator · {what} · {SPEED:g}× speed"
     else:
-        pill = "CL1 · live neurons" if src == "CL1" else "cl-sdk simulator · no cells"
+        pill = "CL1 · live neurons" if src == "CL1" else "Simulator running live · LIF spiking network"
     return dict(source=src, pill=pill, cells_off=src == "mock" and os.environ.get("NO_CELLS") == "1", trial_s=bci.TRIAL_S, off=list(bci.EXCLUDED), array="CL1 · 64 electrodes")
 
 
@@ -246,7 +246,7 @@ HISTORY = os.path.join(os.path.dirname(os.path.abspath(__file__)), "history.json
 def _series_name():
     src = _source()
     return "Live: CL1" if src["source"] == "CL1" else (
-        "Simulator check (cells off)" if os.environ.get("NO_CELLS") == "1" else "Practice dish (simulated)") \
+        "Practice simulator · network off (control)" if os.environ.get("NO_CELLS") == "1" else "Practice simulator (not the LIF network)") \
         if src["source"] == "mock" else src["pill"]
 
 

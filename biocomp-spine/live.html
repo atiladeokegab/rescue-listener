@@ -157,7 +157,7 @@ button:focus-visible { outline: 2px solid var(--stim); outline-offset: 2px; }
     try {
       const s = await (await fetch("/state")).json(), res = s.res || {};
       $("pill").textContent = s.pill; $("pill").classList.toggle("real", s.source === "CL1");
-      $("who").textContent = s.source === "replay" ? "living rat neurons" : "living human neurons";
+      $("who").textContent = s.source === "replay" ? "living rat neurons" : s.source === "CL1" ? "living human neurons" : "a simulated spiking network";
       $("how").innerHTML = HOW + `The readout starts ${s.skip_ms} ms after the pulse; the greyed artefact trap reads from the pulse itself, so it shows what the stimulation alone would score, and is never counted. ` + (SRC[s.source] || "");
       $("array").textContent = s.array;
       const key = s.off.join() + "|" + s.alphabet.join();
