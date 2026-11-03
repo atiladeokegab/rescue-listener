@@ -49,7 +49,7 @@ MS = bci.FPS // 1000
 
 
 def load_design(path=DESIGN):
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         d = json.load(f)
     a, b = (np.asarray(d["histories_ms"][k]) for k in "AB")
     for h in (a, b):  # same count and span; the probe after the last history pulse; 100 ms minimum spacing
@@ -93,7 +93,7 @@ def freeze(section, config, path=FROZEN):
                  frozen_at=datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"))
     allf = load(path, verify=False)
     allf[section] = entry
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         json.dump(allf, f, indent=1)
     return entry
 
@@ -102,7 +102,7 @@ def load(path=FROZEN, verify=True):
     """frozen.json -> dict; with verify, every entry's hash must match its config."""
     if not os.path.isfile(path):
         return {}
-    with open(path) as f:
+    with open(path, encoding="utf-8") as f:
         allf = json.load(f)
     for k, e in allf.items():
         if verify and hashlib.sha256(json.dumps(e["config"], sort_keys=True).encode()).hexdigest() != e["sha256"]:

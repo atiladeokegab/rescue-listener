@@ -25,6 +25,7 @@ uv sync
 $env:CL_SDK_DATA_SOURCE        = 'organoid_simulator.lif_data_source:make_lif_source'
 $env:CL_SDK_DATA_SOURCE_CONFIG = '{"coupling_gain_mV":4.0}'
 $env:CL_SDK_VISUALISATION      = '0'
+$env:PYTHONUTF8                = '1'
 $env:PYTHONPATH                = 'C:\demo\rescue-listener\biocomp-spine'
 ```
 

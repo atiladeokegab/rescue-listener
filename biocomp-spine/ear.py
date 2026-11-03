@@ -40,7 +40,7 @@ N_CAL = 40
 
 def trials(snr="10"):
     """[(id, label 1=survivor, wav path, bed)] in file order. The data repo is read, never written."""
-    meta = json.load(open(os.path.join(DATA, "sequences.json")))
+    meta = json.load(open(os.path.join(DATA, "sequences.json"), encoding="utf-8"))
     key = f"snr{snr}" if str(snr).startswith("-") or str(snr) == "0" else f"snr+{snr}"
     return [(t["id"], int(t["class"] == "survivor"), os.path.join(DATA, t["files"][key]), t.get("bed", "?"))
             for t in meta["trials"]]
@@ -48,7 +48,7 @@ def trials(snr="10"):
 
 def index():
     """{id: the trial's sequences.json entry} (pattern, bed, knock_times_ms, ...)."""
-    return {t["id"]: t for t in json.load(open(os.path.join(DATA, "sequences.json")))["trials"]}
+    return {t["id"]: t for t in json.load(open(os.path.join(DATA, "sequences.json"), encoding="utf-8"))["trials"]}
 
 
 def load_wav(path):
