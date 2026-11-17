@@ -1,5 +1,7 @@
 # rescue-listener
 
+**🥈 2nd place** · Biocomputing Hack by Outlier Labs · London · 3 November 2026
+
 The biocomp hack kit in one repo:
 
 | Folder | What it is |
